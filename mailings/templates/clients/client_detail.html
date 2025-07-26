@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}Клиент{% endblock %}
+{% block content %}
+<h1>Информация о клиенте</h1>
+<ul class="list-group mb-3">
+    <li class="list-group-item"><strong>ФИО:</strong> {{ object.full_name }}</li>
+    <li class="list-group-item"><strong>Email:</strong> {{ object.email }}</li>
+    <li class="list-group-item"><strong>Комментарий:</strong> {{ object.comment }}</li>
+</ul>
+<a href="{% url 'mailings:client_update' object.pk %}" class="btn btn-primary">Редактировать</a>
+<a href="{% url 'mailings:client_list' %}" class="btn btn-secondary">Назад</a>
+{% endblock %}
