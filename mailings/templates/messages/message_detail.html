@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}Сообщение{% endblock %}
+{% block content %}
+<h1>Детали сообщения</h1>
+<ul class="list-group mb-3">
+    <li class="list-group-item"><strong>Тема:</strong> {{ object.subject }}</li>
+    <li class="list-group-item"><strong>Текст:</strong> {{ object.body }}</li>
+</ul>
+<a href="{% url 'mailings:message_update' object.pk %}" class="btn btn-primary">Редактировать</a>
+<a href="{% url 'mailings:message_list' %}" class="btn btn-secondary">Назад</a>
+{% endblock %}

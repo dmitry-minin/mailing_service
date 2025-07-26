@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% load tz %}
+
+{% block title %}Рассылки{% endblock %}
+
+{% block content %}
+<h1>{% if is_manager %}Все рассылки{% else %}Мои рассылки{% endif %}</h1>
+
+{% if messages %}
+{% for message in messages %}
+<div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endfor %}
+{% endif %}
+
+{% if not is_manager %}
+<a href="{% url 'mailings:mailing_create' %}" class="btn btn-primary mb-3">
+    <i class="bi bi-plus-circle"></i> Создать рассылку
+</a>
+{% endif %}
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead class="table-light">
+        <tr>
+            <th>Сообщение</th>
+            <th>Начало</th>
+            <th>Окончание</th>
+            <th>Статус</th>
+            {% if not is_manager %}
+            <th class="text-end">Действия</th>
+            {% endif %}
+        </tr>
+        </thead>
+        <tbody>
+        {% for mailing in object_list %}
+        <tr>
+            <td>{{ mailing.message.subject|truncatechars:50 }}</td>
+            <td>{{ mailing.start_time|date:"d.m.Y H:i" }}</td>
+            <td>{{ mailing.end_time|date:"d.m.Y H:i" }}</td>
+            <td>
+                    <span class="badge bg-{% if mailing.status == 'completed' %}success{% elif mailing.status == 'started' %}primary{% else %}secondary{% endif %}">
+                        {{ mailing.get_status_display }}
+                    </span>
+            </td>
+            {% if not is_manager %}
+            <td class="text-end">
+                <div class="btn-group" role="group">
+                    <a href="{% url 'mailings:mailing_edit' mailing.pk %}"
+                       class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-pencil me-1"></i>Редактировать
+                    </a>
+
+                    <form method="post"
+                          action="{% url 'mailings:mailing_launch' mailing.pk %}"
+                          class="d-inline"
+                          onsubmit="return confirm('Вы уверены, что хотите запустить рассылку?')">
+                        {% csrf_token %}
+                        <button type="submit"
+                                class="btn btn-sm {% if mailing.status == 'completed' %}btn-outline-secondary{% else %}btn-outline-success{% endif %}"
+                                {% if mailing.status == 'completed' %}disabled{% endif %}>
+                        <i class="bi bi-send me-1"></i>Запустить
+                        </button>
+                    </form>
+
+                    <a href="{% url 'mailings:mailing_delete' mailing.pk %}"
+                       class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-trash me-1"></i>Удалить
+                    </a>
+                </div>
+            </td>
+            {% endif %}
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="{% if is_manager %}4{% else %}5{% endif %}" class="text-center text-muted">
+                Нет рассылок для отображения
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
