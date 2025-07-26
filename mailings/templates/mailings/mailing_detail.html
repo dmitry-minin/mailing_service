@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Рассылка{% endblock %}
+{% block content %}
+<h1>Информация о рассылке</h1>
+<ul class="list-group mb-3">
+    <li class="list-group-item"><strong>Сообщение:</strong> {{ object.message.subject }}</li>
+    <li class="list-group-item"><strong>Дата начала:</strong> {{ object.start_time }}</li>
+    <li class="list-group-item"><strong>Дата окончания:</strong> {{ object.end_time }}</li>
+    <li class="list-group-item"><strong>Клиенты:</strong>
+        <ul>
+            {% for client in object.clients.all %}
+                <li>{{ client.full_name }} ({{ client.email }})</li>
+            {% endfor %}
+        </ul>
+    </li>
+    <li class="list-group-item"><strong>Статус:</strong> {{ object.status }}</li>
+</ul>
+<a href="{% url 'mailings:mailing_edit' object.pk %}" class="btn btn-primary">Редактировать</a>
+<a href="{% url 'mailings:mailing_list' %}" class="btn btn-secondary">Назад</a>
+{% endblock %}
