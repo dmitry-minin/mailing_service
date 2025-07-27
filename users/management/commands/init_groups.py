@@ -19,7 +19,7 @@ class Command(BaseCommand):
         if created:
             self.stdout.write('✔ Группа "Managers" создана')
 
-        # 3) Менеджеры получают права view_* и change_* для ключевых моделей
+        # 3) Менеджеры получают стандартные права view_* и change_* для ключевых моделей
         for model in (Client, Message, Mailing, CustomUser):
             ct = ContentType.objects.get_for_model(model)
             for action in ('view', 'change'):
@@ -27,9 +27,33 @@ class Command(BaseCommand):
                 try:
                     perm = Permission.objects.get(content_type=ct, codename=codename)
                     managers_group.permissions.add(perm)
+                    self.stdout.write(f'✔ Право "{perm.name}" добавлено для Managers')
                 except Permission.DoesNotExist:
                     self.stdout.write(self.style.WARNING(
-                        f'⚠ Permission {codename} for {model.__name__} not found'
+                        f'⚠ Permission {codename} for {model.__name__} не найдено'
                     ))
+
+        # 4) Добавляем кастомные права для менеджеров
+        custom_permissions = [
+            # Клиенты
+            'view_all_clients',
+            # Сообщения
+            'view_all_messages',
+            # Пользователи
+            'block_user',
+            # Рассылки
+            'view_all_mailings',
+            'toggle_mailing',
+        ]
+
+        for codename in custom_permissions:
+            try:
+                perm = Permission.objects.get(codename=codename)
+                managers_group.permissions.add(perm)
+                self.stdout.write(f'✔ Кастомное право "{perm.name}" добавлено для Managers')
+            except Permission.DoesNotExist:
+                self.stdout.write(self.style.WARNING(
+                    f'⚠ Кастомное право {codename} не найдено в базе'
+                ))
 
         self.stdout.write(self.style.SUCCESS('✅ Группы Users и Managers успешно настроены'))
