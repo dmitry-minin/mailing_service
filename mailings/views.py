@@ -1,11 +1,12 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required, permission_required
-from django.shortcuts import render, redirect
-from django.urls import reverse_lazy, reverse
+from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse_lazy
 from django.views.generic import (
     ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView, View
 )
 
+from users.models import CustomUser
 from .models import Client, Message, Mailing
 from .forms import ClientForm, MessageForm, MailingForm
 
@@ -19,14 +20,8 @@ from .services.mailing_services import process_mailing
 
 from django.contrib import messages
 
-from django.views.decorators.cache import cache_page
-from django.utils.decorators import method_decorator
 
 
-CACHE_TTL = 60 * 15
-
-
-@method_decorator(cache_page(CACHE_TTL), name='dispatch')
 class ClientListView(LoginRequiredMixin, ListView):
     """
     Список клиентов.
@@ -38,13 +33,13 @@ class ClientListView(LoginRequiredMixin, ListView):
     context_object_name = 'clients'
 
     def get_queryset(self):
-        if self.request.user.groups.filter(name='Managers').exists():
+        if self.request.user.has_perm('mailings.view_all_clients'):
             return Client.objects.all()
         return Client.objects.filter(owner=self.request.user)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['is_manager'] = self.request.user.groups.filter(name='Managers').exists()
+        context['is_manager'] = self.request.user.has_perm('mailings.view_all_clients')
         return context
 
 
@@ -87,7 +82,6 @@ class ClientDeleteView(LoginRequiredMixin, DeleteView):
         return Client.objects.filter(owner=self.request.user)
 
 
-@method_decorator(cache_page(CACHE_TTL), name='dispatch')
 class MessageListView(LoginRequiredMixin, ListView):
     """
     Список сообщений.
@@ -99,13 +93,13 @@ class MessageListView(LoginRequiredMixin, ListView):
     context_object_name = 'messages'
 
     def get_queryset(self):
-        if self.request.user.groups.filter(name='Managers').exists():
+        if self.request.user.has_perm('mailings.view_all_messages'):
             return Message.objects.all()
         return Message.objects.filter(owner=self.request.user)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['is_manager'] = self.request.user.groups.filter(name='Managers').exists()
+        context['is_manager'] = self.request.user.has_perm('mailings.view_all_messages')
         return context
 
 
@@ -148,7 +142,6 @@ class MessageDeleteView(LoginRequiredMixin, DeleteView):
         return Message.objects.filter(owner=self.request.user)
 
 
-@method_decorator(cache_page(CACHE_TTL), name='dispatch')
 class MailingListView(LoginRequiredMixin, ListView):
     """
     Список рассылок.
@@ -160,13 +153,13 @@ class MailingListView(LoginRequiredMixin, ListView):
     context_object_name = 'mailings'
 
     def get_queryset(self):
-        if self.request.user.groups.filter(name='Managers').exists():
+        if self.request.user.has_perm('mailings.view_all_mailings'):
             return Mailing.objects.all()
         return Mailing.objects.filter(owner=self.request.user)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['is_manager'] = self.request.user.groups.filter(name='Managers').exists()
+        context['is_manager'] = self.request.user.has_perm('mailings.view_all_mailings')
         return context
 
 
@@ -252,7 +245,7 @@ class HomeView(TemplateView):
         user = request.user
         if not user.is_authenticated:
             ctx = get_anonymous_context()
-        elif user.groups.filter(name='Managers').exists():
+        elif user.has_perm('mailings.view_all_mailings'):
             ctx = get_manager_context(current_user=user)
         else:
             ctx = get_user_context(user)
@@ -269,14 +262,19 @@ class HomeView(TemplateView):
 
 
 @login_required
-@permission_required('users.change_customuser', raise_exception=True)
+@permission_required('users.block_user', raise_exception=True)
 def user_toggle_view(request, pk):
     """
-    Блокировка/разблокировка аккаунта сервиса (CustomUser).
-    Доступно менеджерам с правом users.change_customuser.
+    Блокировка/разблокировка пользователя.
+    Нельзя заблокировать самого себя.
     """
-    toggle_user_active(pk)
-    return redirect(reverse('mailings:home'))
+    if request.user.pk == pk:
+        messages.error(request, "Вы не можете заблокировать свой аккаунт")
+        return redirect('mailings:home')
+
+    user = get_object_or_404(CustomUser, pk=pk)
+    toggle_user_active(user.pk)
+    return redirect('mailings:home')
 
 
 @login_required
@@ -286,5 +284,6 @@ def mailing_toggle_view(request, pk):
     Включение/отключение рассылки (Mailing).
     Доступно менеджерам с правом mailings.change_mailing.
     """
-    toggle_mailing_active(pk)
-    return redirect(reverse('mailings:home'))
+    mailing = get_object_or_404(Mailing, pk=pk)
+    toggle_mailing_active(mailing.pk)
+    return redirect(request.META.get('HTTP_REFERER', 'mailings:home'))
