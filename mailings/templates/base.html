@@ -41,11 +41,9 @@
                     <a class="nav-link disabled" href="#">{{ user.email }}</a>
                 </li>
                 <li class="nav-item">
-                    <form method="post" action="{% url 'users:logout' %}" class="d-inline">
+                    <form class="d-inline" method="post" action="{% url 'users:logout' %}">
                         {% csrf_token %}
-                        <button type="submit" class="nav-link btn btn-link p-0">
-                            Выход
-                        </button>
+                        <button type="submit" class="btn btn-link nav-link p-0">Выход</button>
                     </form>
                 </li>
                 {% else %}

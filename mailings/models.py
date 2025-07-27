@@ -17,6 +17,13 @@ class Client(models.Model):
     def __str__(self):
         return f"{self.full_name} <{self.email}>"
 
+    class Meta:
+        verbose_name = "Клиент"
+        verbose_name_plural = "Клиенты"
+        permissions = [
+            ("view_all_clients", "Может просматривать всех клиентов"),
+        ]
+
 
 class Message(models.Model):
     """Модель сообщения для рассылки"""
@@ -32,6 +39,13 @@ class Message(models.Model):
 
     def __str__(self):
         return self.subject
+
+    class Meta:
+        verbose_name = "Сообщение"
+        verbose_name_plural = "Сообщения"
+        permissions = [
+            ("view_all_messages", "Может просматривать все сообщения"),
+        ]
 
 
 class Mailing(models.Model):
@@ -67,6 +81,14 @@ class Mailing(models.Model):
     def __str__(self):
         return f"Рассылка #{self.id} ({self.status})"
 
+    class Meta:
+        verbose_name = "Рассылка"
+        verbose_name_plural = "Рассылки"
+        permissions = [
+            ("view_all_mailings", "Может просматривать все рассылки"),
+            ("toggle_mailing", "Может включать/отключать рассылки"),
+        ]
+
 
 class MailingAttempt(models.Model):
     """Модель попытки отправки рассылки"""
@@ -82,3 +104,7 @@ class MailingAttempt(models.Model):
 
     def __str__(self):
         return f"Попытка для рассылки #{self.mailing.id} — {self.status}"
+
+    class Meta:
+        verbose_name = "Попытка рассылки"
+        verbose_name_plural = "Попытки рассылок"

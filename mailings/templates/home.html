@@ -109,7 +109,11 @@
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <span>{{ m.message.subject }}</span>
                     <a href="{% url links.mailing_toggle m.pk %}" class="btn btn-sm btn-warning">
-                        {% if m.status == 'completed' %}Включить{% else %}Отключить{% endif %}
+                        {% if m.status == 'created' or m.status == 'started' %}
+                        Отключить
+                        {% else %}
+                        Включить
+                        {% endif %}
                     </a>
                 </div>
                 {% endfor %}
