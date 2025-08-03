@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Детали профиля{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-light">
+            <h3 class="mb-0">Детали профиля</h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 text-center">
+                    {% if object.avatar %}
+                        <img src="{{ object.avatar.url }}"
+                             class="img-thumbnail mb-3"
+                             width="200"
+                             alt="Аватар">
+                    {% endif %}
+                </div>
+                <div class="col-md-8">
+                    <table class="table table-borderless">
+                        <tbody>
+                            <tr>
+                                <th class="w-25">Email:</th>
+                                <td>{{ object.email }}</td>
+                            </tr>
+                            {% if object.phone %}
+                            <tr>
+                                <th>Телефон:</th>
+                                <td>{{ object.phone }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if object.country %}
+                            <tr>
+                                <th>Страна:</th>
+                                <td>{{ object.country }}</td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer bg-white">
+            <a href="{% url 'users:user_update' object.pk %}" class="btn btn-primary">
+                Редактировать
+            </a>
+            <a href="{% url 'mailings:home' %}" class="btn btn-outline-secondary">
+                На главную
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
