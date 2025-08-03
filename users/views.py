@@ -1,12 +1,15 @@
 from django.contrib.auth import login
 from django.contrib.auth.models import Group
 from django.core.mail import send_mail
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect
 from django.urls import reverse_lazy
-from django.views.generic import FormView, TemplateView
+from django.views.generic import FormView, TemplateView, DetailView
+from django.views.generic.edit import UpdateView
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+
 from django.conf import settings
 
-from .forms import RegistrationForm
+from .forms import RegistrationForm, UserForm
 from .models import EmailActivation, CustomUser
 
 
@@ -62,3 +65,24 @@ class ActivateView(TemplateView):
         user.groups.add(grp)
         login(request, user)
         return redirect('mailings:home')
+
+
+class UserDetailView(LoginRequiredMixin, DetailView):
+    template_name = 'users/user_detail.html'
+    model = CustomUser
+    form_class = UserForm
+
+    def test_func(self):
+        return self.request.user == self.get_object()
+
+
+class UserUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    template_name = 'users/user_update.html'
+    model = CustomUser
+    form_class = UserForm
+
+    def test_func(self):
+        return self.request.user == self.get_object()
+
+    def get_success_url(self):
+        return reverse_lazy('users:user_detail', kwargs={'pk': self.object.pk})
