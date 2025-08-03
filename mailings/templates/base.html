@@ -38,7 +38,7 @@
                 {% if user.is_authenticated %}
                 <!-- Пользовательский блок -->
                 <li class="nav-item">
-                    <a class="nav-link disabled" href="#">{{ user.email }}</a>
+                    <a class="nav-link text-nowrap" href="{% url 'users:user_detail' user.pk %}">{{ user.email }}</a>
                 </li>
                 <li class="nav-item">
                     <form class="d-inline" method="post" action="{% url 'users:logout' %}">

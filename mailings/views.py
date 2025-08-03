@@ -2,6 +2,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from django.views.generic import (
     ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView, View
 )
@@ -21,7 +23,7 @@ from .services.mailing_services import process_mailing
 from django.contrib import messages
 
 
-
+@method_decorator(cache_page(60 * 2), name='dispatch')
 class ClientListView(LoginRequiredMixin, ListView):
     """
     Список клиентов.
